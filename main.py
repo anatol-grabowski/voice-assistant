@@ -11,6 +11,7 @@ import keyboard
 import beepy
 import pygame as pg
 import openai
+import time
 
 
 class Stt:
@@ -113,6 +114,7 @@ class App:
     def start_edit(self):
         keyboard.call_later(lambda: beepy.beep(sound=1), delay=0)
         keyboard.send('ctrl+a')
+        time.sleep(0.5)
         keyboard.send('ctrl+c')
         text = pyperclip.paste()
         print('=' * 60)
@@ -120,6 +122,7 @@ class App:
         print(f'{text[0:60]}...')
 
         instruction = self.stt.record_once()
+        keyboard.call_later(lambda: beepy.beep(sound=3), delay=0)
         print('-' * 40, 'Instruction:')
         print(instruction)
 
@@ -153,6 +156,8 @@ def main():
 
     keyboard.send('esc') # error fast if no root
     stt.init()
+    keyboard.call_later(lambda: beepy.beep(sound=3), delay=0) # sound hint that app started
+
     keyboard.on_press_key('alt gr', lambda evt: app.start_edit())
 
     try:
