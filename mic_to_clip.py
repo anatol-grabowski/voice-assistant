@@ -128,12 +128,18 @@ class App:
             input=text,
             instruction=instruction,
             temperature=0.7,
-            top_p=1
+            top_p=0.9
         )
+
         print(response)
+        choice = response.choices[0].text
         print()
 
-        keyboard.call_later(lambda: beepy.beep(sound=3), delay=0)
+        pyperclip.copy(choice)
+        keyboard.send('ctrl+a')
+        keyboard.send('ctrl+v')
+
+        keyboard.call_later(lambda: beepy.beep(sound=0), delay=0)
         return
 
 def main():
@@ -145,8 +151,9 @@ def main():
     if (openai.api_key is None or openai.api_key == ''):
         raise BaseException('no OPENAI_API_KEY')
 
-    keyboard.on_press_key('alt gr', lambda evt: app.start_edit()) # error fast if no root
+    keyboard.send('esc') # error fast if no root
     stt.init()
+    keyboard.on_press_key('alt gr', lambda evt: app.start_edit())
 
     try:
         keyboard.wait()
