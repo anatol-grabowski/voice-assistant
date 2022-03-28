@@ -114,15 +114,19 @@ class App:
     def start_edit(self):
         keyboard.call_later(lambda: beepy.beep(sound=1), delay=0)
         keyboard.send('ctrl+a')
-        time.sleep(0.5)
         keyboard.send('ctrl+c')
+        time.sleep(0.1)
         text = pyperclip.paste()
         print('=' * 60)
         print('-' * 40, 'Edit text:')
         print(f'{text[0:60]}...')
+        # return
 
         instruction = self.stt.record_once()
         keyboard.call_later(lambda: beepy.beep(sound=3), delay=0)
+        print('=' * 60)
+        print('-' * 40, 'Edit text:')
+        print(f'{text[0:60]}...')
         print('-' * 40, 'Instruction:')
         print(instruction)
 
