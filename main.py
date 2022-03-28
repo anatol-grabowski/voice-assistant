@@ -148,6 +148,7 @@ class App:
 
         instruction = self.stt.record_once()
         if instruction is None:
+            print('CANCELED')
             pyperclip.copy(old_clipboard)
             keyboard.call_later(lambda: beepy.beep(sound=3), delay=0)
             return
@@ -167,6 +168,7 @@ class App:
             top_p=0.9
         )
         if keyboard.is_pressed('esc'):
+            print('CANCELED')
             pyperclip.copy(old_clipboard)
             keyboard.call_later(lambda: beepy.beep(sound=3), delay=0)
             return
