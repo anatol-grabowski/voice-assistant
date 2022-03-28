@@ -22,5 +22,5 @@ Edit text in current window by giving voice instructions to GPT-3.
 
 - put the cursor into the text input that supports `ctrl+a`, `ctrl+c` and `ctrl+v`
 - press `alt gr` (right alt key) to copy text and dictate edit instructions
-- hold `esc` to cancel
+  - hold `esc` to cancel if needed
 - the edited result will be pasted back into the input
