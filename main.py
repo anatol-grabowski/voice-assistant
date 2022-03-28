@@ -12,7 +12,31 @@ import beepy
 import pygame as pg
 import openai
 import time
+# import pyautogui # requires `xhost + local:` to work for root
 
+def copy():
+    # pyautogui.hotkey('ctrl', 'a')
+    # pyautogui.hotkey('ctrl', 'c')
+
+    keyboard.send('ctrl+a')
+    keyboard.send('ctrl+c')
+    text = pyperclip.paste()
+
+    # keyboard.press('ctrl')
+    # time.sleep(0.1)
+    # keyboard.press('a')
+    # time.sleep(0.1)
+    # keyboard.release('a')
+    # time.sleep(0.1)
+    # keyboard.press('c')
+    # time.sleep(0.1)
+    # keyboard.release('c')
+    # time.sleep(0.1)
+    # keyboard.release('ctrl')
+    # time.sleep(0.1)
+
+    text = pyperclip.paste()
+    return text
 
 class Stt:
     def _int_or_str(self, text):
@@ -91,6 +115,8 @@ class Stt:
 
                     rec = vosk.KaldiRecognizer(model, args.samplerate)
                     while True:
+                        if keyboard.is_pressed('esc'):
+                            return
                         data = q.get()
                         if rec.AcceptWaveform(data):
                             res = rec.Result()
@@ -112,17 +138,20 @@ class App:
         self.stt = stt
 
     def start_edit(self):
+        old_clipboard = pyperclip.paste()
+        text = copy()
         keyboard.call_later(lambda: beepy.beep(sound=1), delay=0)
-        keyboard.send('ctrl+a')
-        keyboard.send('ctrl+c')
-        time.sleep(0.1)
-        text = pyperclip.paste()
         print('=' * 60)
         print('-' * 40, 'Edit text:')
         print(f'{text[0:60]}...')
         # return
 
         instruction = self.stt.record_once()
+        if instruction is None:
+            pyperclip.copy(old_clipboard)
+            keyboard.call_later(lambda: beepy.beep(sound=3), delay=0)
+            return
+
         keyboard.call_later(lambda: beepy.beep(sound=3), delay=0)
         print('=' * 60)
         print('-' * 40, 'Edit text:')
@@ -137,6 +166,10 @@ class App:
             temperature=0.7,
             top_p=0.9
         )
+        if keyboard.is_pressed('esc'):
+            pyperclip.copy(old_clipboard)
+            keyboard.call_later(lambda: beepy.beep(sound=3), delay=0)
+            return
 
         print(response)
         choice = response.choices[0].text
@@ -146,14 +179,15 @@ class App:
         keyboard.send('ctrl+a')
         keyboard.send('ctrl+v')
 
+        time.sleep(0.1)
+        pyperclip.copy(old_clipboard)
         keyboard.call_later(lambda: beepy.beep(sound=0), delay=0)
         return
 
+stt = Stt()
+app = App(stt)
+
 def main():
-    stt = Stt()
-    app = App(stt)
-
-
     openai.api_key = os.getenv("OPENAI_API_KEY")
     if (openai.api_key is None or openai.api_key == ''):
         raise BaseException('no OPENAI_API_KEY')
@@ -162,7 +196,7 @@ def main():
     stt.init()
     keyboard.call_later(lambda: beepy.beep(sound=3), delay=0) # sound hint that app started
 
-    keyboard.on_press_key('alt gr', lambda evt: app.start_edit())
+    keyboard.on_release_key('alt gr', lambda evt: app.start_edit())
 
     try:
         keyboard.wait()
