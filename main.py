@@ -136,8 +136,11 @@ class Osd:
 class App:
     def __init__(self, stt):
         self.stt = stt
+        self.is_running = False
 
     def start_edit(self):
+        if self.is_running: return
+        self.is_running = True
         old_clipboard = pyperclip.paste()
         text = copy()
         keyboard.call_later(lambda: beepy.beep(sound=1), delay=0)
@@ -151,6 +154,7 @@ class App:
             print('CANCELED')
             pyperclip.copy(old_clipboard)
             keyboard.call_later(lambda: beepy.beep(sound=3), delay=0)
+            self.is_running = False
             return
 
         keyboard.call_later(lambda: beepy.beep(sound=3), delay=0)
@@ -171,6 +175,7 @@ class App:
             print('CANCELED')
             pyperclip.copy(old_clipboard)
             keyboard.call_later(lambda: beepy.beep(sound=3), delay=0)
+            self.is_running = False
             return
 
         print(response)
@@ -184,6 +189,7 @@ class App:
         time.sleep(0.1)
         pyperclip.copy(old_clipboard)
         keyboard.call_later(lambda: beepy.beep(sound=0), delay=0)
+        self.is_running = False
         return
 
 stt = Stt()
