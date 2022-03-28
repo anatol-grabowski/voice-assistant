@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+'''
+Speech to text: dictate text and it will be pasted at cursor position.
+Say 'enter' at the end to avoid pauses.
+'''
+
 import argparse
 import os
 import queue
@@ -12,8 +17,8 @@ import beepy
 import pygame as pg
 import openai
 import time
-import json
 import re
+import json
 # import pyautogui # requires `xhost + local:` to work for root
 
 def copy():
@@ -128,7 +133,7 @@ class Stt:
                         else:
                             res = rec.PartialResult()
                             r = json.loads(res)['partial']
-                            print('Partial:', r)
+                            print('Partial', r)
                             words = r.split(' ')
                             if words[-1] == 'enter':
                                 return re.sub(' enter\s*$', '', r)
@@ -149,65 +154,41 @@ class App:
     def start_edit(self):
         if self.is_running: return
         self.is_running = True
-        old_clipboard = pyperclip.paste()
-        text = copy()
         keyboard.call_later(lambda: beepy.beep(sound=1), delay=0)
-        print('=' * 60)
-        print('-' * 40, 'Edit text:')
-        print(f'{text[0:60]}...')
-        # return
 
-        instruction = self.stt.record_once()
-        if instruction is None:
+        text = self.stt.record_once()
+        if text is None:
             print('CANCELED')
-            pyperclip.copy(old_clipboard)
             keyboard.call_later(lambda: beepy.beep(sound=3), delay=0)
             self.is_running = False
             return
 
-        keyboard.call_later(lambda: beepy.beep(sound=3), delay=0)
+        # keyboard.call_later(lambda: beepy.beep(sound=3), delay=0)
         print('=' * 60)
-        print('-' * 40, 'Edit text:')
-        print(f'{text[0:60]}...')
-        print('-' * 40, 'Instruction:')
-        print(instruction)
+        print('-' * 40, 'Text:')
+        print(text)
 
+        # response = openai.Edit.create(
+        #     engine="text-davinci-edit-001",
+        #     input=text,
+        #     instruction=instruction,
+        #     temperature=0.7,
+        #     top_p=0.9
+        # )
+        # if keyboard.is_pressed('esc'):
+        #     print('CANCELED')
+        #     pyperclip.copy(old_clipboard)
+        #     keyboard.call_later(lambda: beepy.beep(sound=3), delay=0)
+        #     self.is_running = False
+        #     return
 
-        pg.init()
-        info = pg.display.Info()
-        screen = pg.display.set_mode((info.current_w, 200))
-        screen_rect = screen.get_rect()
-        font = pg.font.Font(None, 45)
-        clock = pg.time.Clock()
-        color = (250, 250, 250)
+        # print(response)
+        # choice = response.choices[0].text
+        # print()
 
-        txt = font.render(f'{instruction} [{text[0:60]}...]', True, color)
-        screen.fill((30, 30, 30))
-        screen.blit(txt, txt.get_rect(center=screen_rect.center))
-        pg.display.flip()
-
-
-        response = openai.Edit.create(
-            engine="text-davinci-edit-001",
-            input=text,
-            instruction=instruction,
-            temperature=0.7,
-            top_p=0.9
-        )
-        pg.quit()
-        if keyboard.is_pressed('esc'):
-            print('CANCELED')
-            pyperclip.copy(old_clipboard)
-            keyboard.call_later(lambda: beepy.beep(sound=3), delay=0)
-            self.is_running = False
-            return
-
-        print(response)
-        choice = response.choices[0].text
-        print()
-
-        pyperclip.copy(choice)
-        keyboard.send('ctrl+a')
+        old_clipboard = pyperclip.paste()
+        pyperclip.copy(f'{text}')
+        # keyboard.send('ctrl+a')
         keyboard.send('ctrl+v')
 
         time.sleep(0.1)
